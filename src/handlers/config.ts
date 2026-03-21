@@ -9,12 +9,10 @@ class configHandler implements FormatHandler {
   public ready: boolean = false;
 
   private readonly cfgExt = ['ini', 'cfg', 'cnf', 'conf', 'cf'];
-  private readonly yamlExt = ['yaml', 'yml'];
 
   async init() {
     this.supportedFormats = [
       CommonFormats.JSON.builder("json").markLossless().allowFrom(true).allowTo(true),
-      CommonFormats.YML.builder("yaml").markLossless().allowFrom(true).allowTo(true),
       {
         name: "INI Configuration File",
         format: "ini",
@@ -104,34 +102,6 @@ class configHandler implements FormatHandler {
 
         outputFiles.push({
           name: file.name.replace(/\.json$/i, `.${outputFormat.extension}`),
-          bytes: encoder.encode(stringified),
-        });
-      }
-    }
-
-    // yaml -> config
-    if (inputFormat.internal === "yaml" && outputFormat.internal === "ini") {
-      for (const file of inputFiles) {
-        const decode = decoder.decode(file.bytes);
-        const parsed = yaml.parse(decode);
-        const stringified = ini.stringify(parsed);
-
-        outputFiles.push({
-          name: file.name.replace(yamlRegex, `.${outputFormat.extension}`),
-          bytes: encoder.encode(stringified),
-        });
-      }
-    }
-
-    // config -> yaml
-    if (inputFormat.internal === "ini" && outputFormat.internal === "yaml") {
-      for (const file of inputFiles) {
-        const decode = decoder.decode(file.bytes);
-        const parsed = ini.parse(decode);
-        const stringified = yaml.stringify(parsed);
-
-        outputFiles.push({
-          name: file.name.replace(cfgRegex, ".yaml"),
           bytes: encoder.encode(stringified),
         });
       }
