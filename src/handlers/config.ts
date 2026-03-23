@@ -62,6 +62,16 @@ class configHandler implements FormatHandler {
         internal: "ini",
         lossless: true,
       },
+      {
+        name: "RIVALS Configuration File", // https://www.roblox.com/games/17625359962
+        format: "txt",
+        extension: "txt",
+        mime: "text/plain",
+        from: true,
+        to: true,
+        internal: "txt",
+        lossless: true,
+      },
     ];
     this.ready = true;
   }
@@ -76,6 +86,40 @@ class configHandler implements FormatHandler {
     const encoder = new TextEncoder();
 
     const cfgRegex = new RegExp(`\\.(${this.cfgExt.join('|')})$`, 'i');
+
+    // rivals -> json
+    if (inputFormat.name === "RIVALS Configuration File" && outputFormat.internal === "json") {
+      for (const file of inputFiles) {
+        const content = decoder.decode(file.bytes);
+        const decoded = content
+          .split("")
+          .reverse()
+          .map((char) => String.fromCharCode(char.charCodeAt(0) - 1))
+          .join("");
+
+        outputFiles.push({
+          name: file.name.replace(/\.txt$/i, ".json"),
+          bytes: encoder.encode(decoded),
+        });
+      }
+    }
+
+    // json -> rivals
+    if (inputFormat.internal === "json" && outputFormat.name === "RIVALS Configuration File") {
+      for (const file of inputFiles) {
+        const content = decoder.decode(file.bytes);
+        const encoded = content
+          .split("")
+          .map((char) => String.fromCharCode(char.charCodeAt(0) + 1))
+          .reverse()
+          .join("");
+
+        outputFiles.push({
+          name: file.name.replace(/\.json$/i, ".txt"),
+          bytes: encoder.encode(encoded),
+        });
+      }
+    }
 
     // config -> json
     if (inputFormat.internal === "ini" && outputFormat.internal === "json") {
