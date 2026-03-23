@@ -1,10 +1,9 @@
 import type { FileData, FileFormat, FormatHandler } from "../FormatHandler.ts";
 import CommonFormats from "src/CommonFormats.ts";
 import * as ini from 'ini';
-import * as yaml from 'yaml';
 
 class configHandler implements FormatHandler {
-  public name: string = "cfg";
+  public name: string = "config";
   public supportedFormats?: FileFormat[];
   public ready: boolean = false;
 
@@ -12,7 +11,7 @@ class configHandler implements FormatHandler {
 
   async init() {
     this.supportedFormats = [
-      CommonFormats.JSON.builder("json").markLossless().allowFrom(true).allowTo(true),
+      CommonFormats.JSON.builder("json").allowFrom(true).allowTo(true),
       {
         name: "INI Configuration File",
         format: "ini",
@@ -77,7 +76,6 @@ class configHandler implements FormatHandler {
     const encoder = new TextEncoder();
 
     const cfgRegex = new RegExp(`\\.(${this.cfgExt.join('|')})$`, 'i');
-    const yamlRegex = new RegExp(`\\.(${this.yamlExt.join('|')})$`, 'i');
 
     // config -> json
     if (inputFormat.internal === "ini" && outputFormat.internal === "json") {
@@ -103,6 +101,16 @@ class configHandler implements FormatHandler {
         outputFiles.push({
           name: file.name.replace(/\.json$/i, `.${outputFormat.extension}`),
           bytes: encoder.encode(stringified),
+        });
+      }
+    }
+
+    // config -> config
+    if (inputFormat.internal === outputFormat.internal) {
+      for (const file of inputFiles) {
+        outputFiles.push({
+          name: file.name.replace(cfgRegex, `.${outputFormat.extension}`),
+          bytes: file.bytes,
         });
       }
     }
